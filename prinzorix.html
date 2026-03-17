@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Prinzorix</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --gold: #c9a84c;
+      --gold-light: #e8c97a;
+      --gold-dark: #8a6a1e;
+      --black: #0a0806;
+      --off-white: #f5f0e8;
+      --cream: #ede6d6;
+      --text-muted: #9a8f7a;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--black);
+      color: var(--off-white);
+      font-family: 'DM Sans', sans-serif;
+      overflow-x: hidden;
+      cursor: none;
+    }
+
+    /* Custom cursor */
+    .cursor {
+      position: fixed;
+      width: 10px; height: 10px;
+      background: var(--gold);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 9999;
+      transform: translate(-50%, -50%);
+      transition: transform 0.1s ease;
+      mix-blend-mode: difference;
+    }
+    .cursor-ring {
+      position: fixed;
+      width: 36px; height: 36px;
+      border: 1px solid var(--gold);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 9998;
+      transform: translate(-50%, -50%);
+      transition: left 0.12s ease, top 0.12s ease, transform 0.3s ease;
+      opacity: 0.6;
+    }
+
+    /* Noise overlay */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 9997;
+      opacity: 0.35;
+    }
+
+    /* NAV */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 28px 60px;
+      background: linear-gradient(to bottom, rgba(10,8,6,0.95), transparent);
+    }
+    .nav-logo {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 2rem;
+      letter-spacing: 0.15em;
+      color: var(--gold);
+      text-decoration: none;
+    }
+    .nav-links { display: flex; gap: 40px; list-style: none; }
+    .nav-links a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.78rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      transition: color 0.3s;
+    }
+    .nav-links a:hover { color: var(--gold); }
+    .nav-cta {
+      border: 1px solid var(--gold);
+      color: var(--gold) !important;
+      padding: 9px 22px !important;
+      transition: background 0.3s, color 0.3s !important;
+    }
+    .nav-cta:hover { background: var(--gold) !important; color: var(--black) !important; }
+
+    /* HERO */
+    .hero {
+      min-height: 100vh;
+      display: flex; flex-direction: column; justify-content: center;
+      position: relative;
+      padding: 0 60px;
+      overflow: hidden;
+    }
+    .hero-bg {
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse at 70% 50%, rgba(201,168,76,0.08) 0%, transparent 60%),
+                  radial-gradient(ellipse at 20% 80%, rgba(201,168,76,0.05) 0%, transparent 50%);
+    }
+    .hero-line {
+      position: absolute;
+      top: 0; right: 200px;
+      width: 1px; height: 100%;
+      background: linear-gradient(to bottom, transparent, var(--gold-dark), transparent);
+      opacity: 0.3;
+    }
+    .hero-content { position: relative; max-width: 800px; }
+    .hero-tag {
+      font-size: 0.7rem;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 30px;
+      opacity: 0;
+      animation: fadeUp 0.8s 0.3s forwards;
+    }
+    .hero-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(5rem, 12vw, 11rem);
+      line-height: 0.88;
+      letter-spacing: 0.03em;
+      color: var(--off-white);
+      opacity: 0;
+      animation: fadeUp 0.9s 0.5s forwards;
+    }
+    .hero-title span { color: var(--gold); }
+    .hero-sub {
+      font-family: 'Cormorant Garamond', serif;
+      font-style: italic;
+      font-size: 1.4rem;
+      color: var(--text-muted);
+      margin-top: 24px;
+      max-width: 480px;
+      line-height: 1.6;
+      opacity: 0;
+      animation: fadeUp 0.9s 0.7s forwards;
+    }
+    .hero-actions {
+      display: flex; align-items: center; gap: 36px;
+      margin-top: 48px;
+      opacity: 0;
+      animation: fadeUp 0.9s 0.9s forwards;
+    }
+    .btn-primary {
+      background: var(--gold);
+      color: var(--black);
+      padding: 15px 38px;
+      font-size: 0.75rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      text-decoration: none;
+      font-weight: 500;
+      transition: background 0.3s, transform 0.2s;
+    }
+    .btn-primary:hover { background: var(--gold-light); transform: translateY(-2px); }
+    .btn-ghost {
+      color: var(--text-muted);
+      font-size: 0.75rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      text-decoration: none;
+      display: flex; align-items: center; gap: 10px;
+      transition: color 0.3s;
+    }
+    .btn-ghost::after {
+      content: '→';
+      transition: transform 0.3s;
+    }
+    .btn-ghost:hover { color: var(--off-white); }
+    .btn-ghost:hover::after { transform: translateX(6px); }
+
+    .hero-scroll {
+      position: absolute; bottom: 40px; left: 60px;
+      display: flex; align-items: center; gap: 14px;
+      opacity: 0;
+      animation: fadeUp 0.9s 1.1s forwards;
+    }
+    .scroll-line {
+      width: 40px; height: 1px;
+      background: var(--gold);
+      position: relative; overflow: hidden;
+    }
+    .scroll-line::after {
+      content: '';
+      position: absolute; top: 0; left: -100%;
+      width: 100%; height: 100%;
+      background: var(--off-white);
+      animation: slideLine 2s 1.5s infinite;
+    }
+    .scroll-text {
+      font-size: 0.65rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+
+    /* MARQUEE */
+    .marquee-wrap {
+      padding: 20px 0;
+      background: var(--gold);
+      overflow: hidden;
+      white-space: nowrap;
+    }
+    .marquee-track {
+      display: inline-flex;
+      animation: marquee 18s linear infinite;
+    }
+    .marquee-item {
+      display: inline-flex; align-items: center; gap: 20px;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.1rem;
+      letter-spacing: 0.1em;
+      color: var(--black);
+      padding: 0 30px;
+    }
+    .marquee-dot { width: 5px; height: 5px; background: var(--black); border-radius: 50%; }
+
+    /* ABOUT */
+    .about {
+      padding: 130px 60px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 80px;
+      align-items: center;
+    }
+    .about-visual {
+      position: relative;
+      height: 520px;
+    }
+    .about-card {
+      position: absolute;
+      background: linear-gradient(135deg, #1a1510, #0f0c08);
+      border: 1px solid rgba(201,168,76,0.2);
+    }
+    .about-card-main {
+      inset: 0;
+      display: flex; flex-direction: column;
+      justify-content: flex-end;
+      padding: 36px;
+      overflow: hidden;
+    }
+    .about-card-main::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0;
+      height: 60%;
+      background: linear-gradient(135deg, rgba(201,168,76,0.12), transparent);
+    }
+    .about-num {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 6rem;
+      color: rgba(201,168,76,0.15);
+      line-height: 1;
+      position: absolute; top: 20px; right: 20px;
+    }
+    .about-stat-label {
+      font-size: 0.65rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 8px;
+    }
+    .about-stat-val {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 3rem;
+      letter-spacing: 0.05em;
+      color: var(--off-white);
+    }
+    .about-card-sm {
+      width: 200px; height: 130px;
+      bottom: -20px; right: -20px;
+      display: flex; flex-direction: column;
+      justify-content: center;
+      padding: 24px;
+      background: var(--gold);
+      border: none;
+    }
+    .about-card-sm .about-stat-label { color: rgba(10,8,6,0.6); }
+    .about-card-sm .about-stat-val { color: var(--black); font-size: 2.2rem; }
+
+    .section-label {
+      font-size: 0.65rem;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 20px;
+    }
+    .section-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(2.5rem, 5vw, 4rem);
+      letter-spacing: 0.04em;
+      line-height: 1;
+      color: var(--off-white);
+      margin-bottom: 24px;
+    }
+    .section-body {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.15rem;
+      color: var(--text-muted);
+      line-height: 1.75;
+      margin-bottom: 16px;
+    }
+    .divider {
+      width: 40px; height: 1px;
+      background: var(--gold);
+      margin: 30px 0;
+    }
+
+    /* SERVICES */
+    .services {
+      padding: 100px 60px;
+      background: linear-gradient(to bottom, transparent, rgba(201,168,76,0.03), transparent);
+    }
+    .services-header {
+      display: flex; align-items: flex-end; justify-content: space-between;
+      margin-bottom: 60px;
+    }
+    .services-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2px;
+    }
+    .service-card {
+      background: #0f0c08;
+      padding: 48px 36px;
+      border: 1px solid rgba(201,168,76,0.1);
+      position: relative;
+      overflow: hidden;
+      transition: border-color 0.4s;
+      cursor: none;
+    }
+    .service-card::before {
+      content: '';
+      position: absolute; top: 0; left: 0;
+      width: 100%; height: 2px;
+      background: linear-gradient(to right, var(--gold), transparent);
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 0.4s;
+    }
+    .service-card:hover { border-color: rgba(201,168,76,0.3); }
+    .service-card:hover::before { transform: scaleX(1); }
+    .service-icon {
+      width: 44px; height: 44px;
+      border: 1px solid var(--gold-dark);
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 28px;
+      color: var(--gold);
+      font-size: 1.2rem;
+    }
+    .service-num {
+      position: absolute; top: 28px; right: 28px;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1rem;
+      letter-spacing: 0.1em;
+      color: rgba(201,168,76,0.2);
+    }
+    .service-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.6rem;
+      letter-spacing: 0.06em;
+      color: var(--off-white);
+      margin-bottom: 14px;
+    }
+    .service-desc {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      line-height: 1.7;
+    }
+
+    /* TESTIMONIALS */
+    .testimonials {
+      padding: 120px 60px;
+      position: relative;
+    }
+    .testimonials::before {
+      content: '"';
+      position: absolute; top: 60px; left: 40px;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 20rem;
+      color: rgba(201,168,76,0.04);
+      line-height: 1;
+      pointer-events: none;
+    }
+    .testimonials-grid {
+      display: grid;
+      grid-template-columns: 1.4fr 1fr 1fr;
+      gap: 24px;
+      margin-top: 60px;
+    }
+    .testimonial-card {
+      background: #0f0c08;
+      border: 1px solid rgba(201,168,76,0.1);
+      padding: 40px;
+      position: relative;
+    }
+    .testimonial-card.featured {
+      background: linear-gradient(135deg, #1a1510, #0f0c08);
+      border-color: rgba(201,168,76,0.25);
+    }
+    .stars { color: var(--gold); font-size: 0.8rem; letter-spacing: 3px; margin-bottom: 20px; }
+    .testimonial-text {
+      font-family: 'Cormorant Garamond', serif;
+      font-style: italic;
+      font-size: 1.05rem;
+      color: var(--off-white);
+      line-height: 1.7;
+      margin-bottom: 28px;
+    }
+    .testimonial-card.featured .testimonial-text { font-size: 1.2rem; }
+    .testimonial-author { display: flex; align-items: center; gap: 14px; }
+    .author-avatar {
+      width: 42px; height: 42px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--gold-dark), var(--gold));
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1rem;
+      color: var(--black);
+    }
+    .author-name { font-size: 0.85rem; font-weight: 500; color: var(--off-white); }
+    .author-role { font-size: 0.72rem; color: var(--text-muted); letter-spacing: 0.05em; }
+
+    /* CONTACT */
+    .contact {
+      padding: 120px 60px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 100px;
+      align-items: center;
+    }
+    .contact-form { display: flex; flex-direction: column; gap: 18px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+    .form-group { display: flex; flex-direction: column; gap: 8px; }
+    .form-label { font-size: 0.65rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--text-muted); }
+    .form-input, .form-textarea {
+      background: #0f0c08;
+      border: 1px solid rgba(201,168,76,0.15);
+      color: var(--off-white);
+      padding: 14px 18px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.9rem;
+      outline: none;
+      transition: border-color 0.3s;
+      cursor: none;
+    }
+    .form-input:focus, .form-textarea:focus { border-color: var(--gold); }
+    .form-textarea { resize: none; height: 120px; }
+    .form-input::placeholder, .form-textarea::placeholder { color: rgba(154,143,122,0.4); }
+
+    /* FOOTER */
+    footer {
+      border-top: 1px solid rgba(201,168,76,0.1);
+      padding: 50px 60px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .footer-logo {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.8rem;
+      letter-spacing: 0.1em;
+      color: var(--gold);
+    }
+    .footer-copy {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      letter-spacing: 0.05em;
+    }
+    .footer-links { display: flex; gap: 28px; }
+    .footer-links a {
+      font-size: 0.72rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      text-decoration: none;
+      transition: color 0.3s;
+    }
+    .footer-links a:hover { color: var(--gold); }
+
+    /* ANIMATIONS */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes marquee {
+      from { transform: translateX(0); }
+      to { transform: translateX(-50%); }
+    }
+    @keyframes slideLine {
+      0% { left: -100%; }
+      100% { left: 100%; }
+    }
+
+    /* Scroll reveal */
+    .reveal {
+      opacity: 0;
+      transform: translateY(40px);
+      transition: opacity 0.8s ease, transform 0.8s ease;
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .reveal-delay-1 { transition-delay: 0.15s; }
+    .reveal-delay-2 { transition-delay: 0.3s; }
+    .reveal-delay-3 { transition-delay: 0.45s; }
+
+    @media (max-width: 900px) {
+      nav { padding: 22px 24px; }
+      .nav-links { display: none; }
+      .hero { padding: 0 24px; }
+      .about, .contact { grid-template-columns: 1fr; padding: 80px 24px; }
+      .about-visual { height: 320px; margin-bottom: 40px; }
+      .services { padding: 80px 24px; }
+      .services-grid { grid-template-columns: 1fr; }
+      .services-header { flex-direction: column; align-items: flex-start; gap: 20px; }
+      .testimonials { padding: 80px 24px; }
+      .testimonials-grid { grid-template-columns: 1fr; }
+      footer { flex-direction: column; gap: 24px; padding: 40px 24px; text-align: center; }
+      .hero-scroll { left: 24px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="cursor" id="cursor"></div>
+  <div class="cursor-ring" id="cursorRing"></div>
+
+  <!-- NAV -->
+  <nav>
+    <a class="nav-logo" href="#">PRINZORIX</a>
+    <ul class="nav-links">
+      <li><a href="#about">About</a></li>
+      <li><a href="#services">Services</a></li>
+      <li><a href="#testimonials">Reviews</a></li>
+      <li><a href="#contact" class="nav-cta">Contact Us</a></li>
+    </ul>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-bg"></div>
+    <div class="hero-line"></div>
+    <div class="hero-content">
+      <p class="hero-tag">Excellence Redefined · Est. 2024</p>
+      <h1 class="hero-title">PRINZO<span>RIX</span></h1>
+      <p class="hero-sub">Where vision meets precision — crafting extraordinary experiences for those who demand nothing less than the finest.</p>
+      <div class="hero-actions">
+        <a href="#services" class="btn-primary">Explore Services</a>
+        <a href="#about" class="btn-ghost">Our Story</a>
+      </div>
+    </div>
+    <div class="hero-scroll">
+      <span class="scroll-line"></span>
+      <span class="scroll-text">Scroll to Discover</span>
+    </div>
+  </section>
+
+  <!-- MARQUEE -->
+  <div class="marquee-wrap">
+    <div class="marquee-track">
+      <span class="marquee-item">PRINZORIX <span class="marquee-dot"></span></span>
+      <span class="marquee-item">LUXURY REDEFINED <span class="marquee-dot"></span></span>
+      <span class="marquee-item">EXCELLENCE FIRST <span class="marquee-dot"></span></span>
+      <span class="marquee-item">CRAFTED WITH VISION <span class="marquee-dot"></span></span>
+      <span class="marquee-item">PREMIUM QUALITY <span class="marquee-dot"></span></span>
+      <span class="marquee-item">YOUR SUCCESS PARTNER <span class="marquee-dot"></span></span>
+      <!-- Duplicate for seamless loop -->
+      <span class="marquee-item">PRINZORIX <span class="marquee-dot"></span></span>
+      <span class="marquee-item">LUXURY REDEFINED <span class="marquee-dot"></span></span>
+      <span class="marquee-item">EXCELLENCE FIRST <span class="marquee-dot"></span></span>
+      <span class="marquee-item">CRAFTED WITH VISION <span class="marquee-dot"></span></span>
+      <span class="marquee-item">PREMIUM QUALITY <span class="marquee-dot"></span></span>
+      <span class="marquee-item">YOUR SUCCESS PARTNER <span class="marquee-dot"></span></span>
+    </div>
+  </div>
+
+  <!-- ABOUT -->
+  <section class="about" id="about">
+    <div class="about-visual reveal">
+      <div class="about-card about-card-main">
+        <span class="about-num">10</span>
+        <div class="about-stat-label">Years of Excellence</div>
+        <div class="about-stat-val">Premium Standards</div>
+      </div>
+      <div class="about-card about-card-sm">
+        <div class="about-stat-label">Happy Clients</div>
+        <div class="about-stat-val">2,400+</div>
+      </div>
+    </div>
+    <div>
+      <p class="section-label reveal">Who We Are</p>
+      <h2 class="section-title reveal reveal-delay-1">BORN FROM<br>AMBITION</h2>
+      <div class="divider reveal reveal-delay-1"></div>
+      <p class="section-body reveal reveal-delay-2">
+        Prinzorix was founded on a singular belief: that true excellence is not a compromise. We are a collective of strategists, creators, and innovators united by our obsession with quality.
+      </p>
+      <p class="section-body reveal reveal-delay-2">
+        Every project we undertake is approached with the same level of dedication — from the smallest detail to the grandest vision. We don't just meet expectations, we redefine them.
+      </p>
+      <a href="#contact" class="btn-primary reveal reveal-delay-3" style="display:inline-block; margin-top: 16px;">Work With Us</a>
+    </div>
+  </section>
+
+  <!-- SERVICES -->
+  <section class="services" id="services">
+    <div class="services-header">
+      <div>
+        <p class="section-label reveal">What We Offer</p>
+        <h2 class="section-title reveal reveal-delay-1">OUR<br>SERVICES</h2>
+      </div>
+      <a href="#contact" class="btn-ghost reveal">View All Services</a>
+    </div>
+    <div class="services-grid">
+      <div class="service-card reveal">
+        <span class="service-num">01</span>
+        <div class="service-icon">◈</div>
+        <div class="service-title">Brand Strategy</div>
+        <p class="service-desc">Building powerful identities that resonate, inspire loyalty, and position your brand at the pinnacle of your industry.</p>
+      </div>
+      <div class="service-card reveal reveal-delay-1">
+        <span class="service-num">02</span>
+        <div class="service-icon">◉</div>
+        <div class="service-title">Digital Design</div>
+        <p class="service-desc">Crafting visually stunning digital experiences that captivate audiences and drive meaningful engagement.</p>
+      </div>
+      <div class="service-card reveal reveal-delay-2">
+        <span class="service-num">03</span>
+        <div class="service-icon">⬡</div>
+        <div class="service-title">Business Growth</div>
+        <p class="service-desc">Strategic consulting and execution to accelerate your business, unlock new markets, and maximize returns.</p>
+      </div>
+      <div class="service-card reveal">
+        <span class="service-num">04</span>
+        <div class="service-icon">◇</div>
+        <div class="service-title">Marketing</div>
+        <p class="service-desc">Data-driven campaigns across all channels that build lasting connections with your most valuable audiences.</p>
+      </div>
+      <div class="service-card reveal reveal-delay-1">
+        <span class="service-num">05</span>
+        <div class="service-icon">⬙</div>
+        <div class="service-title">Tech Solutions</div>
+        <p class="service-desc">Custom technology built with precision — scalable, secure, and engineered to outperform the competition.</p>
+      </div>
+      <div class="service-card reveal reveal-delay-2">
+        <span class="service-num">06</span>
+        <div class="service-icon">◈</div>
+        <div class="service-title">Consultancy</div>
+        <p class="service-desc">Premium advisory services that provide clarity, direction, and the actionable insights you need to lead.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- TESTIMONIALS -->
+  <section class="testimonials" id="testimonials">
+    <p class="section-label reveal">Client Stories</p>
+    <h2 class="section-title reveal reveal-delay-1">WHAT THEY<br>SAY ABOUT US</h2>
+    <div class="testimonials-grid">
+      <div class="testimonial-card featured reveal">
+        <div class="stars">★★★★★</div>
+        <p class="testimonial-text">Prinzorix completely transformed our brand presence. Their attention to detail, creative thinking, and professional approach exceeded every expectation we had. Truly world-class work.</p>
+        <div class="testimonial-author">
+          <div class="author-avatar">AK</div>
+          <div>
+            <div class="author-name">Aryan Kapoor</div>
+            <div class="author-role">CEO, Kapoor Industries</div>
+          </div>
+        </div>
+      </div>
+      <div class="testimonial-card reveal reveal-delay-1">
+        <div class="stars">★★★★★</div>
+        <p class="testimonial-text">The team at Prinzorix delivered outstanding results. Our business grew 3x in just one year of working with them. Highly recommended.</p>
+        <div class="testimonial-author">
+          <div class="author-avatar">SM</div>
+          <div>
+            <div class="author-name">Sara Mehta</div>
+            <div class="author-role">Founder, LuxeHome</div>
+          </div>
+        </div>
+      </div>
+      <div class="testimonial-card reveal reveal-delay-2">
+        <div class="stars">★★★★★</div>
+        <p class="testimonial-text">Exceptional quality and premium service. Prinzorix understands what luxury clients need and delivers it flawlessly every single time.</p>
+        <div class="testimonial-author">
+          <div class="author-avatar">RJ</div>
+          <div>
+            <div class="author-name">Rahul Joshi</div>
+            <div class="author-role">Director, Elara Group</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTACT -->
+  <section class="contact" id="contact">
+    <div>
+      <p class="section-label reveal">Get In Touch</p>
+      <h2 class="section-title reveal reveal-delay-1">LET'S CREATE<br>SOMETHING<br>GREAT</h2>
+      <div class="divider reveal reveal-delay-1"></div>
+      <p class="section-body reveal reveal-delay-2">Ready to elevate your business? We'd love to hear about your vision. Fill out the form and our team will reach out within 24 hours.</p>
+      <p class="section-body reveal reveal-delay-2" style="font-size:0.8rem; margin-top:8px;">
+        📧 hello@prinzorix.com<br>
+        📞 +91 98765 43210
+      </p>
+    </div>
+    <div class="contact-form reveal reveal-delay-1">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">First Name</label>
+          <input class="form-input" type="text" placeholder="John" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Last Name</label>
+          <input class="form-input" type="text" placeholder="Doe" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Email Address</label>
+        <input class="form-input" type="email" placeholder="you@company.com" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Subject</label>
+        <input class="form-input" type="text" placeholder="How can we help?" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Message</label>
+        <textarea class="form-textarea" placeholder="Tell us about your project..."></textarea>
+      </div>
+      <button class="btn-primary" style="border:none; width:100%; padding:18px; font-size:0.8rem; cursor:none;">Send Message</button>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-logo">PRINZORIX</div>
+    <p class="footer-copy">© 2024 Prinzorix. All rights reserved.</p>
+    <div class="footer-links">
+      <a href="#">Privacy</a>
+      <a href="#">Terms</a>
+      <a href="#">Instagram</a>
+      <a href="#">LinkedIn</a>
+    </div>
+  </footer>
+
+  <script>
+    // Custom cursor
+    const cursor = document.getElementById('cursor');
+    const ring = document.getElementById('cursorRing');
+    document.addEventListener('mousemove', e => {
+      cursor.style.left = e.clientX + 'px';
+      cursor.style.top = e.clientY + 'px';
+      ring.style.left = e.clientX + 'px';
+      ring.style.top = e.clientY + 'px';
+    });
+    document.querySelectorAll('a, button, .service-card').forEach(el => {
+      el.addEventListener('mouseenter', () => ring.style.transform = 'translate(-50%,-50%) scale(1.8)');
+      el.addEventListener('mouseleave', () => ring.style.transform = 'translate(-50%,-50%) scale(1)');
+    });
+
+    // Scroll reveal
+    const reveals = document.querySelectorAll('.reveal');
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); } });
+    }, { threshold: 0.15 });
+    reveals.forEach(r => observer.observe(r));
+  </script>
+</body>
+</html>
